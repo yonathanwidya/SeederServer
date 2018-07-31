@@ -26,6 +26,7 @@ public:
     
 private:
     void startConnect();
+    void runMainFlow();
     void takeUserInput();
     
     void handleConnect(const boost::system::error_code& error);
@@ -35,8 +36,6 @@ private:
     boost::asio::ip::tcp::socket mSocket;
     boost::asio::ip::tcp::endpoint mEndpoint;
     boost::asio::streambuf mIncomingBuffer;
-    
-    bool mIsUserInputThreadLaunched;
 };
 
 #endif /* TcpClient_h */

@@ -20,7 +20,6 @@
 TcpClient::TcpClient(boost::asio::io_context& io_context, boost::asio::ip::address ipAddress, int portNum)
 : mSocket(io_context)
 , mEndpoint(ipAddress, portNum)
-, mIsUserInputThreadLaunched(false)
 {
     startConnect();
 }
@@ -50,6 +49,24 @@ void TcpClient::writeMessage(std::string message)
     {
         std::cout << "Me: " << message << std::endl;
     }
+}
+
+void TcpClient::runMainFlow()
+{
+    std::string userOption =
+    "List of available command options:\n"
+    "1. Query all available nodes.\n"
+    "2. List of nodes which are alive during the last 1 hour.\n"
+    "3. List of nodes which are alive during the last 2 hours.\n"
+    "4. List of nodes which are alive during the last 1 day.\n"
+    "At any point of time, please type the command number that you want to do.\n\n";
+    
+    std::cout << userOption;
+    
+    writeMessage("Hello");
+    readMessage();
+    
+    std::thread( [this] { takeUserInput(); } ).detach();
 }
 
 void TcpClient::takeUserInput()
@@ -93,18 +110,7 @@ void TcpClient::handleConnect(const boost::system::error_code& error)
     
     try
     {
-        std::string userOption =
-        "List of available command options:\n"
-        "1. Query all available nodes.\n"
-        "2. List of nodes which are alive during the last 1 hour.\n"
-        "3. List of nodes which are alive during the last 2 hours.\n"
-        "4. List of nodes which are alive during the last 1 day.\n"
-        "At any point of time, please type the command number that you want to do.\n\n";
-        
-        std::cout << userOption;
-        
-        writeMessage("Hello");
-        readMessage();
+        runMainFlow();
     }
     catch (std::exception& e)
     {
@@ -134,13 +140,8 @@ void TcpClient::handleRead(const boost::system::error_code& error)
         writeMessage("Pong");
     }
     
+    // continue to wait and read the next messages
     readMessage();
-    
-    if (!mIsUserInputThreadLaunched)
-    {
-        std::thread( [this] { takeUserInput(); } ).detach();
-        mIsUserInputThreadLaunched = true;
-    }
 }
 
 void TcpClient::handleWrite(const boost::system::error_code& error)
